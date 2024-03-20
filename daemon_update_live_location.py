@@ -3,26 +3,6 @@ import time
 import websocket
 from utils import log, get_device_id, get_device_auth_key, collect_gps_data
 
-# Function to send payload to WebSocket server
-def send_payload(ws):
-    gps_data = collect_gps_data(False)
-    
-    payload = {"authToken": get_device_auth_key(), "trackerId": get_device_id(), "latitude": gps_data["latitude"], "longitude": gps_data["longitude"], "speed": gps_data["speed"], "heading": gps_data["heading"]}
-    
-    payload_json = json.dumps(payload)
-    try:
-        ws.send(payload_json)
-        log('update_live_location', f"Sent payload: {payload_json}")
-    except BrokenPipeError:
-        log('update_live_location', "Broken Pipe error. Reconnecting...")
-        ws.close()
-        establish_connection()
-
-
-# Function to handle incoming messages from the server
-def on_message(ws, message):
-    log('update_live_location', f"Received message from server: {message}")
-
 # WebSocket URL
 ws_url = "wss://kw-ms-ws-livelocation-a6364ce6d3cd.herokuapp.com/"
 
@@ -42,16 +22,27 @@ def establish_connection():
             log('update_live_location', f"Retrying in {reconnect_interval} seconds...")
             time.sleep(reconnect_interval)
 
-# Establish WebSocket connection
-ws = establish_connection()
+# Function to send payload to WebSocket server
+def send_payload():
+    gps_data = collect_gps_data(False)
+    
+    if gps_data:
+        try:
+            ws = establish_connection()
+            payload = {"authToken": get_device_auth_key(), "trackerId": get_device_id(), "latitude": gps_data["latitude"], "longitude": gps_data["longitude"], "speed": gps_data["speed"], "heading": gps_data["heading"]}
+            payload_json = json.dumps(payload)
+            ws.send(payload_json)
+            log('update_live_location', f"Sent payload: {payload_json}")
+            ws.close()
+        except Exception as e:
+            log('update_live_location', f"Error sending payload: {e}")
+    else:
+        log('update_live_location', "No GPS fix available.")
 
 try:
     # Send payload every 2 seconds
     while True:
-        send_payload(ws)
+        send_payload()
         time.sleep(2)
 except KeyboardInterrupt:
     log('update_live_location', "Stopping...")
-    ws.close()
-finally:
-    ws.close()
