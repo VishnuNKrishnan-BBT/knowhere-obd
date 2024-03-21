@@ -17,7 +17,10 @@ def send_data(payload):
             try:
                 json_response = response.json()
                 log("periodic_uploader", f"Response: {json_response}")
-                processed_timestamps = json_response.get('processedTimestamps', [])
+                if json_response.get('data') is not None:
+                    processed_timestamps = json_response['data'].get('processedTimestamps', [])
+                else:
+                    processed_timestamps = []
                 if processed_timestamps:
                     try:
                         conn = sqlite3.connect('gps_data.db')
@@ -55,9 +58,13 @@ def main():
             tracker_id = get_device_id()
             if tracker_id is not None:
                 # Prepare payload
-                payload = []
+                payload = {
+                    "tracker_id": tracker_id,
+                    "tracker_password": '',
+                    "waypoints": []
+                }
                 for waypoint in data:
-                    payload.append({
+                    payload["waypoints"].append({
                         "timestamp": waypoint[0],
                         "latitude": waypoint[1],
                         "longitude": waypoint[2],
