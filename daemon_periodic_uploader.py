@@ -3,7 +3,7 @@ import requests
 import json
 import time
 import sys
-from utils import log, get_device_id
+from utils import log, get_device_id, get_device_auth_key
 
 # Function to send data to the endpoint and delete successfully processed waypoints
 def send_data(payload):
@@ -60,7 +60,7 @@ def main():
                 # Prepare payload
                 payload = {
                     "tracker_id": tracker_id,
-                    "tracker_password": '',
+                    "tracker_password": get_device_auth_key(),
                     "waypoints": []
                 }
                 for waypoint in data:

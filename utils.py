@@ -71,14 +71,6 @@ def collect_gps_data(new_leg=False):
     except Exception as e:
         print("Error:", e)
         return None
-    # return {
-    #     "latitude": 23.1,
-    #     "longitude": 55.6,
-    #     "speed": 3.2,
-    #     "heading": 221,
-    #     "timestamp": timestamp,
-    #     "new_leg": new_leg
-    # }
 
 
 
